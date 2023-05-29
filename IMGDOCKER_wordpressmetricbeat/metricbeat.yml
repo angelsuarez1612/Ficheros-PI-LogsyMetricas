@@ -1,0 +1,24 @@
+metricbeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+setup.template.settings:
+  index.number_of_shards: 1
+  index.codec: best_compression
+
+setup.kibana:
+
+output.redis:
+  hosts: ["redis-service:6379"]
+  password: "passentrada"
+  key: "metricas-logs-escenario"
+  ssl:
+    enabled: true
+    verification_mode: none
+
+processors:
+  - add_host_metadata: ~
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~
+

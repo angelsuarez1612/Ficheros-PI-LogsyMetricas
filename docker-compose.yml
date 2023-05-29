@@ -1,0 +1,89 @@
+version: '3'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0
+    container_name: elasticsearch
+    restart: always
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    environment:
+      - discovery.seed_hosts="elasticsearch-master"
+      - discovery.type=single-node
+    ports:
+      - 9200:9200
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.14.0
+    container_name: logstash
+    restart: always
+    volumes:
+      - logstash_data:/usr/share/logstash/data
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      - ./logstash.yml:/usr/share/logstash/config/logstash.yml
+    ports:
+      - 5044:5044
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.0.0
+    container_name: kibana
+    restart: always
+    volumes:
+      - kibana_data:/usr/share/kibana/data
+      - ./kibana.yml:/usr/share/kibana/config/kibana.yml
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+
+  redis:
+    image: angelsuarez1612/redistfg:v1
+    container_name: redis-service
+    restart: always
+    ports:
+      - 6379:6379
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.16.2
+    container_name: filebeat
+    restart: always
+    user: root
+    volumes:
+      - /var/lib/docker/containers/:/var/log/
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
+
+  db:
+    image: mariadb:latest
+    container_name: mariadb
+    volumes:
+      - db_dato:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: usuariowp
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: usuariowp
+      MYSQL_PASSWORD: usuariowp
+
+  wordpress:
+    depends_on:
+      - db
+    image: angelsuarez1612/wordpresstfg:v1
+    container_name: wordpress
+    ports:
+      - 8000:80
+    restart: always
+    volumes:
+      - wp_dato:/var/www/html
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: usuariowp
+      WORDPRESS_DB_PASSWORD: usuariowp
+
+volumes:
+  elasticsearch_data:
+  logstash_data:
+  kibana_data:
+  db_dato:
+  wp_dato:
