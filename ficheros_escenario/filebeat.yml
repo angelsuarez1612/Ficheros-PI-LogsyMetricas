@@ -1,0 +1,13 @@
+filebeat.inputs:
+  - type: container
+    paths:
+      - /var/log/*/*.log
+
+output.redis:
+  hosts: ["redis:6379"]
+  password: "passentrada"
+  key: "metricas-logs-escenario"
+  ssl:
+    supported_protocols: [ "TLSv1.0", "TLSv1.1", "TLSv1.2", "SSLv3" ]
+    enabled: true
+    verification_mode: none
